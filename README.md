@@ -1,7 +1,7 @@
 # camshot
-created by neoneggplant
+Created by neoneggplant
 
-take photos on iOS from the command line
+Take photos on iOS from the command line
 
 Usage:camshot [-front|-back] [output]  
 Example: camshot -front image.jpg
