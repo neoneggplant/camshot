@@ -1,0 +1,10 @@
+Package: com.neoneggplant.camshot
+Name: camshot
+Depends: 
+Version: 0.0.1
+Architecture: iphoneos-arm
+Description: Take photos with the front or back camera from the command line\nUsage:\ncamshot [-front|-back] [output]\nExample: camshot -front image.jpg\nhttps://github.com/neoneggplant/
+Maintainer: neoneggplant
+Author: neoneggplant
+Section: System
+Tag: role::hacker
