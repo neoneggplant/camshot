@@ -1,5 +1,4 @@
 # camshot
-Created by neoneggplant
 
 Take photos on iOS from the command line
 
