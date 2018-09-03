@@ -1,61 +1,64 @@
 /*
- 07-09-2015
- Created by neoneggplant
- http://neoneggplants.com
+Created 07-09-2015
+Updated 9-2-2018
+Lucas Jackson (http://lucasjackson.io/repo)
 */
 #import "capture.h"
 #import <AVFoundation/AVFoundation.h>
 
-void usage(char* cmd),takepicture(BOOL isfront,char* filename);
-int main(int argc, char **argv, char **envp) {
-    if (argc == 3) {
-        if (!strcmp(argv[1], "-front")) {
-            printf("activating front camera\n");
-            takepicture(TRUE,argv[2]);
-        }
-        else if (!strcmp(argv[1], "-back")) {
-            printf("activating back camera\n");
-            takepicture(FALSE,argv[2]);
-        }
-        else {
-            printf("invalid option: %s\n",argv[1]);
-        }
-    }
-    else if (argc == 2) {
-        if ((!strcmp(argv[1], "-h")) or (!strcmp(argv[1], "-help"))) {
-            usage(argv[0]);
-        }
-        else if (!strcmp(argv[1], "-front")) {
-            printf("Error: %s requires 2 arguments\n",argv[0]);
+void takepicture(BOOL front,BOOL landscape,BOOL mirror,char* filename,int quality);
+void usage(char* cmd);
 
-        }
-        else if (!strcmp(argv[1], "-back")) {
-            printf("Error: %s requires 2 arguments\n",argv[0]);
-        }
-        else {
-            printf("invalid option: %s\n",argv[1]);
-            printf("Error: %s requires 2 arguments\n",argv[0]);
+int main(int argc, char **argv, char **envp) {
+    int opt;
+    bool front = false;
+    bool landscape = false;
+    bool mirror = false;
+    int quality = 1;
+    char *outputFile = NULL;
+    while ((opt = getopt (argc, argv, "q:o:flhm")) != -1)
+    {
+        switch (opt)
+        {
+            case 'q':
+                quality = atoi(optarg);
+                printf ("quality: \"%d\"\n", quality);
+                break;
+            case 'o':
+                printf ("Output file: \"%s\"\n", optarg);
+                outputFile = optarg;
+                break;
+            case 'f':
+                front = true;
+                break;
+            case 'l':
+                landscape = true;
+                break;
+            case 'm':
+                mirror = true;
+                break;
+            case 'h':
+                landscape = true;
+                usage(argv[0]);
+                return 0;
         }
     }
-    else if (argc == 1) {
-        usage(argv[0]);
-    }
-    else  {
-        printf("Error: %s requires 2 arguments\n",argv[0]);
-    }
-	return 0;
+    takepicture(front,landscape,mirror,outputFile,quality);
+    return 0;
 }
 
 void usage(char* cmd) {
-    printf("Usage: %s [-front|-back] [output]\nExample: camshot -front image.jpg\n",cmd);
+    printf("Usage: %s -l(toggle landscape) -q(specify quality [highest 1 - lowest 3]) -o(specify output file) -f(toggle front facing)\n",cmd);
 }
 
-void takepicture(BOOL isfront,char* filename) {
-    //temporarily disable shutter sound
-    system("mv /System/Library/Audio/UISounds/photoShutter.caf /System/Library/Audio/UISounds/photoShutter.caff >/dev/null 2>&1");
+void takepicture(BOOL front,BOOL landscape,BOOL mirror,char* filename,int quality) {
     capture *cam = [[capture alloc] init];
-    [cam setupCaptureSession:isfront];
-    [cam setfilename:[NSString stringWithFormat:@"%s" , filename]];
+    cam.mirror = mirror;
+    cam.front = front;
+    cam.filepath = [NSString stringWithFormat:@"%s",filename];
+    cam.landscape = landscape;
+    cam.quality = quality;
+    [cam setupCaptureSession];
     [NSThread sleepForTimeInterval:0.2];
     //wait to finish
     __block BOOL done = NO;
@@ -64,6 +67,4 @@ void takepicture(BOOL isfront,char* filename) {
     while (!done)
         [[NSRunLoop mainRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.1]];
     [cam release];
-    //return noise to system :p
-    system("mv /System/Library/Audio/UISounds/photoShutter.caff /System/Library/Audio/UISounds/photoShutter.caf >/dev/null 2>&1");
 }

@@ -2,8 +2,7 @@
 
 @implementation capture
 
-- (AVCaptureDevice *)frontFacingCameraIfAvailable
-{
+- (AVCaptureDevice *)frontFacingCameraIfAvailable {
     NSArray *videoDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
     AVCaptureDevice *captureDevice = nil;
     for (AVCaptureDevice *device in videoDevices){
@@ -15,8 +14,7 @@
     return captureDevice;
 }
 
-- (AVCaptureDevice *)backFacingCameraIfAvailable
-{
+- (AVCaptureDevice *)backFacingCameraIfAvailable {
     NSArray *videoDevices = [AVCaptureDevice devicesWithMediaType:AVMediaTypeVideo];
     AVCaptureDevice *captureDevice = nil;
     for (AVCaptureDevice *device in videoDevices){
@@ -28,13 +26,13 @@
     return captureDevice;
 }
 
-- (void)setupCaptureSession:(BOOL)isfront{
+- (void)setupCaptureSession {
     self.session = [[AVCaptureSession alloc] init];
     self.session.sessionPreset = AVCaptureSessionPresetMedium;
     
     AVCaptureDevice *device = nil;
     NSError *error = nil;
-    if (isfront)
+    if (self.front)
         device = [self frontFacingCameraIfAvailable];
     else
         device = [self backFacingCameraIfAvailable];
@@ -51,11 +49,17 @@
     [self.stillImageOutput setOutputSettings:outputSettings];
     [outputSettings release];
     [self.session addOutput:self.stillImageOutput];
+    if (self.quality == 1)
+        [self.session setSessionPreset:AVCaptureSessionPreset1920x1080];
+    else if (self.quality == 2)
+        [self.session setSessionPreset:AVCaptureSessionPreset1280x720];
+    else if (self.quality == 3)
+        [self.session setSessionPreset:AVCaptureSessionPreset640x480];
+
     [self.session startRunning];
-    
 }
-- (void)captureWithBlock:(void(^)(UIImage* image))block
-{
+
+- (void)captureWithBlock:(void(^)(UIImage* image))block {
     AVCaptureConnection* videoConnection = nil;
     for (AVCaptureConnection* connection in self.stillImageOutput.connections)
     {
@@ -71,21 +75,28 @@
             break;
     }
     
+    if (self.landscape) {
+        videoConnection.videoOrientation = AVCaptureVideoOrientationLandscapeRight;
+    }
     [self.stillImageOutput captureStillImageAsynchronouslyFromConnection:videoConnection completionHandler: ^(CMSampleBufferRef imageSampleBuffer, NSError *error)
      {
          NSData* imageData = [AVCaptureStillImageOutput jpegStillImageNSDataRepresentation:imageSampleBuffer];
          UIImage* image = [[UIImage alloc] initWithData:imageData];
+         if (self.mirror) {
+             image = [UIImage imageWithCGImage:image.CGImage
+                                                         scale:image.scale
+                                                   orientation:UIImageOrientationUpMirrored];
+         }
          if (imageData) {
-             printf("Saving image to %s...\n",[filepath UTF8String]);
-             [imageData writeToFile:filepath atomically:YES];
+             if (self.filepath != NULL) {
+                 printf("Saving image to %s...\n",[self.filepath UTF8String]);
+                 [imageData writeToFile:self.filepath atomically:YES];
+             }
          }
          block(image);
      }];
     [_stillImageOutput release];
     [_session release];
-}
-- (void)setfilename:(NSString *)filename {
-    filepath = filename;
 }
 
 
