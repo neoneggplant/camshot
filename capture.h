@@ -9,6 +9,7 @@
 @property (nonatomic, assign) BOOL front;
 @property(nonatomic, assign) bool landscape;
 @property(nonatomic, assign) int quality;
+@property(nonatomic, assign) bool torch;
 
 @property (nonatomic,strong) AVCaptureSession *session;
 @property (readwrite, retain) AVCaptureStillImageOutput *stillImageOutput;
