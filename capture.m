@@ -36,7 +36,13 @@
         device = [self frontFacingCameraIfAvailable];
     else
         device = [self backFacingCameraIfAvailable];
-    
+
+    if ((self.torch) && ([device hasTorch])) {
+        [device lockForConfiguration:nil];
+        [device setTorchMode:AVCaptureTorchModeOn];
+        [device unlockForConfiguration];
+    }
+
     AVCaptureDeviceInput *input = [AVCaptureDeviceInput deviceInputWithDevice:device error:&error];
     if (!input) {
         // Handle the error appropriately.

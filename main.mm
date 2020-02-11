@@ -6,17 +6,18 @@ Lucas Jackson (http://lucasjackson.io/repo)
 #import "capture.h"
 #import <AVFoundation/AVFoundation.h>
 
-void takepicture(BOOL front,BOOL landscape,BOOL mirror,char* filename,int quality);
+void takepicture(BOOL front,BOOL landscape,BOOL mirror,char* filename,int quality, BOOL torch);
 void usage(char* cmd);
 
 int main(int argc, char **argv, char **envp) {
     int opt;
     bool front = false;
+    bool torch = false;
     bool landscape = false;
     bool mirror = false;
     int quality = 1;
     char *outputFile = NULL;
-    while ((opt = getopt (argc, argv, "q:o:flhm")) != -1)
+    while ((opt = getopt (argc, argv, "q:o:flhmt")) != -1)
     {
         switch (opt)
         {
@@ -37,27 +38,31 @@ int main(int argc, char **argv, char **envp) {
             case 'm':
                 mirror = true;
                 break;
+            case 't':
+                torch = true;
+                break;
             case 'h':
                 landscape = true;
                 usage(argv[0]);
                 return 0;
         }
     }
-    takepicture(front,landscape,mirror,outputFile,quality);
+    takepicture(front,landscape,mirror,outputFile,quality,torch);
     return 0;
 }
 
 void usage(char* cmd) {
-    printf("Usage: %s -l(toggle landscape) -q(specify quality [highest 1 - lowest 3]) -o(specify output file) -f(toggle front facing)\n",cmd);
+    printf("Usage: %s -l(toggle landscape) -q(specify quality [highest 1 - lowest 3]) -o(specify output file) -f(toggle front facing) -t(torch/flash)\n",cmd);
 }
 
-void takepicture(BOOL front,BOOL landscape,BOOL mirror,char* filename,int quality) {
+void takepicture(BOOL front,BOOL landscape,BOOL mirror,char* filename,int quality,BOOL torch) {
     capture *cam = [[capture alloc] init];
     cam.mirror = mirror;
     cam.front = front;
     cam.filepath = [NSString stringWithFormat:@"%s",filename];
     cam.landscape = landscape;
     cam.quality = quality;
+    cam.torch = torch;
     [cam setupCaptureSession];
     [NSThread sleepForTimeInterval:0.2];
     //wait to finish
